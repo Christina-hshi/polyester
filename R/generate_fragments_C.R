@@ -92,41 +92,37 @@ generate_fragments_C = function(tObj, fraglen=250, fragsd=25,
     }
     s = which(fraglens < L)
     n = length(s)
-    #if(bias == 'none'){
-        start_pos = floor(runif(n, min=rep(1,n), max=L[s]))
-    #}
-		if(FALSE){
-		#else 
-		if(bias == 'rnaf'){
+    if(TRUE | bias == 'none'){
+        start_pos = floor(runif(n, min=rep(1,n), max=L[s]+1))
+    }else if(bias == 'rnaf'){
         data(rnaf)
         starts_pct = sample(rnaf$pospct, size=n, prob=rnaf$prob, replace=TRUE)
         starts_pct[starts_pct==1] = 0.999
-        start_pos = floor(starts_pct * L[s])
+        start_pos = floor(starts_pct * (L[s]+1))
         start_pos[start_pos==0] = 1
     }else{
         # bias == 'cdnaf'
         data(cdnaf)
         starts_pct = sample(cdnaf$pospct, size=n, prob=cdnaf$prob, replace=TRUE)
         starts_pct[starts_pct==1] = 0.999
-        start_pos = floor(starts_pct * L[s])
+        start_pos = floor(starts_pct * (L[s]+1))
         start_pos[start_pos==0] = 1
-		}
-		}
+	}
 
-		#handle cross junction fragments
-		cross_junction_idxs = which(start_pos > (L[s]-fraglens[s]+1))
-		not_cross_junction_idxs = setdiff(seq_len(s), s_cross_junc)
-		s_cross_junc = s[cross_junction_idxs]
-		s_not_cross_junc = s[not_cross_junction_idxs]
+	#handle cross junction fragments
+	cross_junction_idxs = which(start_pos > (L[s]-fraglens[s]+1))
+	s_cross_junc = s[cross_junction_idxs]
+    not_cross_junction_idxs = setdiff(seq_len(n), cross_junction_idxs)
+	s_not_cross_junc = s[not_cross_junction_idxs]
 
-		#not cross junction
+	#not cross junction
     tObj[s_not_cross_junc] = subseq(tObj[s_not_cross_junc], start=start_pos[not_cross_junction_idxs], width=fraglens[s_not_cross_junc])
-		#cross junction
-		tObj[s_cross_junc] = xscat(subseq(tObj[s_cross_junc], start=start_pos[cross_junction_idxs], width=(L[s_cross_junc]-start_pos[cross_junction_idxs])), subseq(tObj[s_cross_junc], start=rep(1, length(s_cross_junc)), width=fraglens[s_cross_junc]-(L[s_cross_junc]-start_pos[cross_junction_idxs])))
+	#cross junction
+	tObj[s_cross_junc] = xscat(subseq(tObj[s_cross_junc], start=start_pos[cross_junction_idxs], width=(L[s_cross_junc]-start_pos[cross_junction_idxs]+1)), subseq(tObj[s_cross_junc], start=rep(1, length(s_cross_junc)), width=fraglens[s_cross_junc]-(L[s_cross_junc]-start_pos[cross_junction_idxs]+1)))
 
-		names(tObj)[s] = paste0(names(tObj[s]), ';mate1:', start_pos, '-', 
-        start_pos+readlen-1, ';mate2:', start_pos+fraglens[s]-readlen+1, '-', 
-        start_pos+fraglens[s]-1)
+	names(tObj)[s] = paste0(names(tObj[s]), ';mate1:', start_pos, '-', 
+    start_pos+readlen-1, ';mate2:', start_pos+fraglens[s]-readlen+1, '-', 
+    start_pos+fraglens[s]-1)
     nonseqinds = (1:length(tObj))[-s]
     names(tObj)[nonseqinds] = paste0(names(tObj[nonseqinds]), 
         ';mate1Start:1;mate2Start:1')

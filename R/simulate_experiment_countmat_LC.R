@@ -42,7 +42,7 @@
 #'   readmat = matrix(20, ncol=10, nrow=numtx)
 #'   readmat[1:30, 1:5] = 40
 #' 
-#'   simulate_experiment_countmat(fasta=fastapath, 
+#'   simulate_experiment_countmat_LC(fasta=fastapath, 
 #'     readmat=readmat, outdir='simulated_reads_2', seed=5)
 #'}
 

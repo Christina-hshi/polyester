@@ -10,10 +10,10 @@ sgseq_LC = function(readmat, transcripts, paired, outdir, extras, reportCoverage
   }
   
 	#vectors of indexs of linear and cicular transcripts
-	cicular_trans_idx=grep("cir", names(transcripts), fixed=TRUE)
-	linear_trans_idxs=setdiff(seq_len(length(transcripts)), circular_trans_idx)
+	circular_trans_idxs=grep("cir", names(transcripts), fixed=TRUE)
+	linear_trans_idxs=setdiff(seq_len(length(transcripts)), circular_trans_idxs)
 
-	cicular_trans = transcripts[circular_trans_idx]
+	circular_trans = transcripts[circular_trans_idxs]
 	linear_trans = transcripts[linear_trans_idxs]
 
   for(i in seq_len(ncol(readmat))) {
@@ -29,8 +29,7 @@ sgseq_LC = function(readmat, transcripts, paired, outdir, extras, reportCoverage
 		tObj = rep(linear_trans, times=readmat[,i][linear_trans_idxs])
     iterations = ceiling(length(tObj) / 1e6L)
     offset = 1L
-    #for(iteration in seq_len(iterations)) {
-    for(iteration in seq_len(1)) {
+    for(iteration in seq_len(iterations)) {
       tSubset = tObj[offset:min(offset+999999L, length(tObj))] ## corrected value of integer added to offset to avoid duplicating reads
       tFrags = generate_fragments(tSubset, extras$fraglen[i], extras$fragsd[i],
                                   extras$readlen, extras$distr, extras$custdens,
@@ -77,11 +76,11 @@ sgseq_LC = function(readmat, transcripts, paired, outdir, extras, reportCoverage
     }
 		
 		#cicular transcripts
+    offset4write=length(tObj)
 		tObj = rep(circular_trans, times=readmat[,i][circular_trans_idxs])
     iterations = ceiling(length(tObj) / 1e6L)
     offset = 1L
-    #for(iteration in seq_len(iterations)) {
-    for(iteration in seq_len(1)) {
+    for(iteration in seq_len(iterations)) {
       tSubset = tObj[offset:min(offset+999999L, length(tObj))] ## corrected value of integer added to offset to avoid duplicating reads
       tFrags = generate_fragments_C(tSubset, extras$fraglen[i], extras$fragsd[i],
                                   extras$readlen, extras$distr, extras$custdens,
@@ -123,8 +122,9 @@ sgseq_LC = function(readmat, transcripts, paired, outdir, extras, reportCoverage
       #write read pairs
       write_reads(errReads, readlen=extras$readlen,
           fname=paste0(outdir, '/sample_', sprintf('%02d', i)), paired=paired,
-          gzip=extras$gzip, offset=offset)
+          gzip=extras$gzip, offset=offset4write)
       offset = offset + 1e6L
+      offset4write = offset4write + 1e6L
     }
   }
 

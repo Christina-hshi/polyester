@@ -9,3 +9,7 @@ vignettes/simulated_reads
 vignettes/timecourse_reads
 vignettes/polyester.html
 man/
+data/
+inst/
+testcase1/
+vignettes/
